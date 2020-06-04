@@ -1,3 +1,22 @@
 schema-version: 1.0
 name: mariadb
 
+var:
+  rootpassword: password
+
+ports:
+  - "3306"
+
+provision:
+  - pkg: mariadb-server mariadb
+  - shell: systemctl start mariadb
+  - shell: secure.sh
+
+up: start
+down: stop
+
+command:
+  start:
+    - shell: systemctl start mariadb
+  stop: 
+    - shell: systemctl stop mariadb
