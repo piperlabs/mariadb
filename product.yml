@@ -16,7 +16,8 @@ up: start
 down: stop
 
 command:
-  start:
-    - shell: systemctl start mariadb
-  stop: 
-    - shell: systemctl stop mariadb
+  start: systemctl start mariadb
+  stop:
+    container:
+      create: false
+    inline: systemctl stop mariadb
