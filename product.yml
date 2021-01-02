@@ -1,23 +1,54 @@
 schema-version: 1.0
-name: mariadb
+
+
+const:
+  mysqlHome: /usr/local/mysql
 
 var:
+  version: 10.5.8
   rootpassword: password
 
 ports:
   - "3306"
 
+persistent-dirs:
+  - name: data
+    intern: "{% mysqlHome %}/data"
+    owner: "mysql"
+
 provision:
-  - pkg: mariadb-server mariadb
-  - shell: systemctl start mariadb
-  - shell: secure.sh
+  - user:
+      name: mysql
+      group: mysql
+  - pkg: libncurses5
+  - url:
+      from: https://downloads.mariadb.com/MariaDB/mariadb-{% version %}/bintar-linux-systemd-x86_64/mariadb-{% version %}-linux-systemd-x86_64.tar.gz
+      to: /usr/local
+      after: 
+        cmds:
+          - ln -s /usr/local/mariadb-{% version %}-linux-systemd-x86_64 {% mysqlHome %}
+          - cd {% mysqlHome %} && ./scripts/mysql_install_db --user=mysql
+  - systempath: "{% mysqlHome %}/bin"
+  - permission:
+      path: /usr/local/mariadb-{% version %}-linux-systemd-x86_64
+      owner: root
+      group: root
+      recursive: true
+  - permission:
+      path: "{% mysqlHome %}/data"
+      owner: mysql
+      group: mysql
+      recursive: true
+  - shell: "{% mysqlHome %}/support-files/mysql.server start"
+  - shell: "{{ .templates }}/secure.sh"
+  - shell: "{% mysqlHome %}/support-files/mysql.server stop"
 
 up: start
 down: stop
 
 command:
-  start: systemctl start mariadb
+  start: "{% mysqlHome %}/support-files/mysql.server start"
   stop:
     container:
       create: false
-    inline: systemctl stop mariadb
+    cmd: "{% mysqlHome %}/support-files/mysql.server stop"

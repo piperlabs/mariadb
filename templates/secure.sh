@@ -2,7 +2,7 @@
 
 (
 echo
-echo Y 
+echo n
 echo {{ .product.rootpassword }}
 echo {{ .product.rootpassword }}
 echo Y
