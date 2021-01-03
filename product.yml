@@ -7,35 +7,40 @@ const:
 var:
   version: 10.5.8
   rootpassword: password
+  data: /var/lib/mysql
+  port: "3306"
+  log: /var/log/mariadb
 
 ports:
-  - "3306"
+  - "{% port %}"
 
 persistent-dirs:
   - name: data
-    intern: "{% mysqlHome %}/data"
-    owner: "mysql"
+    intern: "{% data %}"
+  - name: log
+    intern: "{% log %}"
 
 provision:
   - user:
       name: mysql
       group: mysql
-  - pkg: libncurses5
   - url:
       from: https://downloads.mariadb.com/MariaDB/mariadb-{% version %}/bintar-linux-systemd-x86_64/mariadb-{% version %}-linux-systemd-x86_64.tar.gz
       to: /usr/local
-      after: 
-        cmds:
-          - ln -s /usr/local/mariadb-{% version %}-linux-systemd-x86_64 {% mysqlHome %}
-          - cd {% mysqlHome %} && ./scripts/mysql_install_db --user=mysql
+      after: ln -s /usr/local/mariadb-{% version %}-linux-systemd-x86_64 {% mysqlHome %}
   - systempath: "{% mysqlHome %}/bin"
+  - folder: /etc/my.cnf.d
+  - copy:
+      from: "{{ .templates }}/my.cnf"
+      todir: /etc
+      after: cd {% mysqlHome %} && ./scripts/mysql_install_db --user=mysql
   - permission:
       path: /usr/local/mariadb-{% version %}-linux-systemd-x86_64
       owner: root
       group: root
       recursive: true
   - permission:
-      path: "{% mysqlHome %}/data"
+      path: "{% data %}"
       owner: mysql
       group: mysql
       recursive: true

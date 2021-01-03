@@ -1,0 +1,6 @@
+labels:
+  osid: ubuntu
+actions:
+  - pkg: libncurses5
+
+  
